@@ -345,16 +345,14 @@ class InvertedResidual(nn.Module):
         
         # Apply antialiasing CNNN for strie >= 2
         else:
-            self.conv_dw = nn.Sequential(create_conv2d(
+            self.conv_dw = create_conv2d(
                     mid_chs, mid_chs, dw_kernel_size, stride=1, dilation=dilation,
-                    padding=pad_type, depthwise=True, **conv_kwargs),
-                                         BlurPool(mid_chs,stride=stride)
-                                        )
-            
-            self.bn2 = norm_layer(mid_chs, **norm_kwargs)
-            self.act2 = act_layer(inplace=True)
-        
+                    padding=pad_type, depthwise=True, **conv_kwargs)
 
+            self.bn2 = norm_layer(mid_chs, **norm_kwargs)
+            self.act2 = nn.Sequential(act_layer(inplace=True),
+                                      BlurPool(mid_chs,stride=stride))
+            
         # Squeeze-and-excitation
         if has_se:
             se_kwargs = resolve_se_args(se_kwargs, in_chs, act_layer)
